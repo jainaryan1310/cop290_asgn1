@@ -60,10 +60,10 @@ int main(){
 	// of the rectangle defining destination of the region of interest in the
 	// warped image
 	vector<Point2f> pts_dst;
-	pts_dst.push_back(Point2f(700,0));
-	pts_dst.push_back(Point2f(700,1000));
-	pts_dst.push_back(Point2f(1200,1000));
-	pts_dst.push_back(Point2f(1200,0));
+	pts_dst.push_back(Point2f(472,52));
+	pts_dst.push_back(Point2f(472,830));
+	pts_dst.push_back(Point2f(800,830));
+	pts_dst.push_back(Point2f(800,52));
 
 	
 	// defining and calculating the homography matrix for the transformation
@@ -82,7 +82,7 @@ int main(){
 	destroyWindow("Projected Frame");
 
 	//defining the region of the warped image to be cropped
-	Rect cropped_region(700, 0, 500, 1000);
+	Rect cropped_region(472, 52, 328, 778);
 
 	// cropping the warped image
 	Mat croppedImg = warpedImg(cropped_region);
