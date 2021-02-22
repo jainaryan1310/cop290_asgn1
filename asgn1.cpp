@@ -10,19 +10,33 @@ using namespace std;
 // *globally defining the pts_src vector as it is used by the call back function
 vector<Point2f> pts_src;
 
-void LeftClick(int event, int x, int y, int flags, void* param)
-{
+void LeftClick(int event, int x, int y, int flags, void* param) {
 	
-	if(event == EVENT_LBUTTONDOWN){
+	if (event == EVENT_LBUTTONDOWN) {
 		Point2f p = Point2f(x,y);
 		pts_src.push_back(p);
 	}
 
 }
 
-int main(){
-	// Read image from file 
-	Mat img = imread("empty.jpg");
+int main(int argc, char* argv[]) {
+
+	if (argc == 1) {
+		cout << "Error: No image has been input to the executable.\n"
+			 << "Please write the name of the image file you want to use, as a command line argument.\n"
+			 << "For example: ./asgn1 traffic.jpg" << endl;
+		return -1;
+	}
+
+	if (argc > 2) {
+		cout << "Error: More arguments than needed. \n"
+			 << "Please enter the name of only one image file. \n"
+			 << "For example: ./asgn1 traffic.jpg" << endl;
+			 return -1;
+	}
+
+	// Read image from file
+	Mat img = imread(argv[1]);
 
 	// Converting the image to grayscale
 	Mat grayImg;
@@ -30,13 +44,11 @@ int main(){
 	cvtColor(img, grayImg, COLOR_BGR2GRAY);
 
 	// if the program fails to read the mentioned image
-	if(img.empty()){
+	if (img.empty()) {
 		// return an error message and terminate the process
-		cout 
-			<< "Error : The image file could not be correctly read,/n"
-			<< "plaese check the file path or whatever is suitable as/n"
-			<< "per the makefile" 
-			<< endl;
+		cout << "Error: The image file could not be correctly read. \n"
+			 << "Please check the file path or extension. \n"
+			 << endl;
 	
 		// exit the process
 		return -1;
@@ -55,6 +67,16 @@ int main(){
 	waitKey(0);
 	destroyWindow("Original Frame");
 
+	//error handling if the user clicks at less or more than 4 points
+	if (pts_src.size() < 4) {
+		cout << "Error: You have clicked on too little points. Please select 4 points on the image, in anticlockwise direction." << endl;
+		return -1;
+	}
+
+	else if (pts_src.size() > 4) {
+		cout << "Error: You have clicked on too many points. Please select only 4 points on the image, in anticlockwise direction." << endl;
+		return -1;
+	}
 
 	// Defining a vector of points to store the coordinates of the corners
 	// of the rectangle defining destination of the region of interest in the
@@ -95,7 +117,4 @@ int main(){
 	destroyWindow("Cropped Frame");
 
 	return 0;
-
-
-
 }
