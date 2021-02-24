@@ -35,6 +35,9 @@ int main(int argc, char* argv[]) {
 			 return -1;
 	}
 
+	// Saving the name of the input image in a string
+	string filename = argv[1];  
+
 	// Read image from file
 	Mat img = imread(argv[1]);
 
@@ -96,6 +99,9 @@ int main(int argc, char* argv[]) {
 
 	warpPerspective(img, warpedImg, h, img.size());
 
+	// saving the warped image under the name "warped_<original_image_name>.jpg"
+	imwrite("warped_"+filename, warpedImg);
+
 	// show the warped image
 	imshow("Projected Frame", warpedImg);
 
@@ -109,6 +115,9 @@ int main(int argc, char* argv[]) {
 	// cropping the warped image
 	Mat croppedImg = warpedImg(cropped_region);
 	
+	// saving the cropped image under the name "cropped_<original_image_name>.jpg"
+	imwrite("cropped_"+filename, croppedImg);
+
 	// showing the cropped image
 	imshow("Cropped Frame", croppedImg);
 
