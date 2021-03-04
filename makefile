@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -g -Wall
-TARGET = asgn1
+TARGET = asgn1_sub1
 THREAD = -pthread
 LIBS = pkg-config --cflags --libs opencv
 
