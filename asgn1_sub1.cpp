@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
+#include "asgn1_sub1.h"
 
 using namespace cv;
 using namespace std;
@@ -88,7 +89,7 @@ Mat crop(Mat warpedImg) {
 
 }
 
-
+/*
 int main(int argc, char* argv[]) {
 
 	if (argc == 1) {
@@ -157,3 +158,4 @@ int main(int argc, char* argv[]) {
 	}
 
 }
+*/

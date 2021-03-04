@@ -18,7 +18,7 @@ void queue_density(string video) {
     if (!capture.isOpened()){
         //error in opening the video input
         cerr << "Unable to open the video frame" << endl;
-        return 0;
+        return;
     }
 
     Mat frame, fgMask;
@@ -39,7 +39,7 @@ void queue_density(string video) {
         stringstream ss;
         ss << capture.get(CAP_PROP_POS_FRAMES);
         string frameNumberString = ss.str();
-        cout << frameNumberString << " " <<;
+        cout << frameNumberString << " " << endl;
 
         //show the current frame and the fg masks
         imshow("Frame", frame);

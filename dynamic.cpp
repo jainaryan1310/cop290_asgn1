@@ -1,72 +1,14 @@
 #include <iostream>
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
+#include "asgn1_sub1.h"
 
 using namespace cv;
 using namespace std;
 
-vector<Point2f> pts_src;
+//vector<Point2f> pts_src;
+//vector<Point2f> pts_dst;
 
-vector<Point2f> pts_dst;
-
-
-void LeftClick(int event, int x, int y, int flags, void* param) {
-	
-	if (event == EVENT_LBUTTONDOWN) {
-		Point2f p = Point2f(x,y);
-		pts_src.push_back(p);
-	}
-
-}
-
-
-void getCropCoordinates(Mat grayImg) {
-
-	//Create a window
-	namedWindow("Original Frame", 1);
-
-	//set the callback function for any mouse event
-	setMouseCallback("Original Frame", LeftClick, NULL);
-	
-	//show the image
-	imshow("Original Frame", grayImg);
-
-	// Wait until user press some key and then close
-	waitKey(0);
-	destroyWindow("Original Frame");
-
-	//error handling if the user clicks at less or more than 4 points
-	if (pts_src.size() < 4) {
-		cout << "Error: You have clicked on too little points. Please select 4 points on the image, in anticlockwise direction." << endl;
-		return;
-	}
-
-	else if (pts_src.size() > 4) {
-		cout << "Error: You have clicked on too many points. Please select only 4 points on the image, in anticlockwise direction." << endl;
-		return;
-	}
-
-	pts_dst.push_back(Point2f(472,52));
-	pts_dst.push_back(Point2f(472,830));
-	pts_dst.push_back(Point2f(800,830));
-	pts_dst.push_back(Point2f(800,52));
-}
-
-Mat wrap_crop(Mat grayImg){
-
-	Mat h = findHomography(pts_src, pts_dst);
-
-	Mat warpedImg;
-
-	warpPerspective(grayImg, warpedImg, h, grayImg.size());
-
-	Rect cropped_region(472, 52, 328, 778);
-
-	Mat croppedImg = warpedImg(cropped_region);
-
-	return croppedImg;
-
-}
 
 int main(int argc, char* argv[]) {
 
@@ -80,7 +22,7 @@ int main(int argc, char* argv[]) {
 
 	VideoCapture capture(samples::findFile(argv[1]));
 
-	Mat prev = wrap_crop(emptyGrayFrame);
+	Mat prev = crop(warp(emptyGrayFrame));
 
 	int i = 0;
 	
@@ -96,7 +38,7 @@ int main(int argc, char* argv[]) {
 		}
 		cvtColor(frame, grayframe, COLOR_BGR2GRAY);
 
-		Mat next = wrap_crop(grayframe);
+		Mat next = crop(warp(grayframe));
 
 		Mat flow(prev.size(), CV_32FC2);
 
