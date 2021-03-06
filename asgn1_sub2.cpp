@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
+#include <fstream>
 #include "warp_crop.h"
 #include "dynamic.h"
 #include "queue.h"
@@ -24,6 +25,11 @@ int main(int argc, char* argv[]){
 			 return -1;
 	}
 
+	ofstream outfile1;
+	ofstream outfile2;
+	outfile1.open("out.txt");
+	outfile2.open("out.csv");
+
 	Mat emptyImg = imread(argv[2]);
 
 	//Mat emptyGrayFrame;
@@ -32,7 +38,7 @@ int main(int argc, char* argv[]){
 
 	getCropCoordinates(emptyImg);
 
-	VideoCapture capture(samples::findFile(argv[1]));
+	VideoCapture capture(argv[1]);
 
     Mat frame, fgMask, grayFrame;
 
@@ -116,9 +122,13 @@ int main(int argc, char* argv[]){
 		float movement = sum(hsv8)[2];
 		float max_movement = hsv8.total()*255.0;
 		float moving_density = movement/max_movement;
+		float time = framenum/15.0;
 
         
-        cout << framenum << "," << queue_density << "," << moving_density << endl;
+        cout << framenum << ", " << queue_density << ", " << moving_density << endl;
+        outfile1 << framenum << " " << queue_density << " " << moving_density << endl;
+        outfile2 << time << "," << queue_density << "," << moving_density << endl;
+
 
         //show the backfround subtraction output
         imshow("FG Mask", thresh);
