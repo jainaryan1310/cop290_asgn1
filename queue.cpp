@@ -1,4 +1,4 @@
-#include "asgn1_sub1.h"
+#include "warp_crop.h"
 #include <iostream>
 #include <sstream>
 #include <opencv2/imgcodecs.hpp>
@@ -6,30 +6,28 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/video.hpp>
+#include <opencv2/bgsegm.hpp>
+#include "queue.h"
 
 
 using namespace cv;
 using namespace std;
 
 
-void queue_density(string video) {
+void queue_density(Mat emptyImg, VideoCapture capture) {
+
     Ptr<BackgroundSubtractor> pBackSub;
     pBackSub = createBackgroundSubtractorMOG2();
-    VideoCapture capture(video);
+
     if (!capture.isOpened()){
         //error in opening the video input
         cerr << "Unable to open the video frame" << endl;
         return;
     }
 
-    Mat frame, fgMask;
+    Mat frame, fgMask, grayFrame;
 
-    frame = imread("empty.jpg");
-    Mat grayFrame;
-    cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
-
-    getCropCoordinates(grayFrame);
-    Mat warpedImg = warp(grayFrame);
+    Mat warpedImg = warp(emptyImg);
     Mat croppedImg = crop(warpedImg);
 
     pBackSub->apply(croppedImg, fgMask, 0);
@@ -39,17 +37,17 @@ void queue_density(string video) {
         if (frame.empty())
             break;
 
-        Mat grayFrame;
-        cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
-
-        Mat warpedImg = warp(grayFrame);
+        Mat warpedImg = warp(frame);
         Mat croppedImg = crop(warpedImg);
 
         //update the background model
         pBackSub->apply(croppedImg, fgMask, 0);
+        
+        Mat thresh;
+        threshold( fgMask, thresh, 200, 255, 3);
 
-        float white = countNonZero(fgMask);
-        float total = fgMask.total();
+        float white = countNonZero(thresh);
+        float total = thresh.total();
         float density = white/total;
 
         stringstream ss;
@@ -58,7 +56,7 @@ void queue_density(string video) {
         cout << frameNumberString << " " << density << endl;
 
         //show the backfround subtraction output
-        imshow("FG Mask", fgMask);
+        imshow("FG Mask", thresh);
 
         //get the input from the keyboard for quitting
         int keyboard = waitKey(30);
@@ -67,9 +65,10 @@ void queue_density(string video) {
     }
 }
 
-
+/*
 int main(int argc, char* argv[])
 {
     queue_density(argv[1]);
     return 0;
 }
+*/

@@ -1,36 +1,27 @@
 #include <iostream>
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
-#include "asgn1_sub1.h"
+#include "warp_crop.h"
+#include "dynamic.h"
 
 using namespace cv;
 using namespace std;
 
-//vector<Point2f> pts_src;
-//vector<Point2f> pts_dst;
+void dynamic_density(VideoCapture capture) {
 
+	Mat frame, grayframe;
 
-int main(int argc, char* argv[]) {
+	capture >> frame;
+	if (frame.empty()){
+		cerr << "Unable to open the video frame" << endl;
+		return;
+	}
+	cvtColor(frame, grayframe, COLOR_BGR2GRAY);
 
-	Mat emptyImg = imread("empty.jpg");
+	Mat prev = crop(warp(grayframe));
 
-	Mat emptyGrayFrame;
-
-	cvtColor(emptyImg, emptyGrayFrame, COLOR_BGR2GRAY);
-
-	getCropCoordinates(emptyGrayFrame);
-
-	VideoCapture capture(samples::findFile(argv[1]));
-
-	Mat prev = crop(warp(emptyGrayFrame));
-
-	int i = 0;
 	
 	while(1){
-
-		i++;
-		
-		Mat frame, grayframe;
 
 		capture >> frame;
 		if (frame.empty()){
@@ -66,7 +57,15 @@ int main(int argc, char* argv[]) {
 
 		hsv.convertTo(hsv8, CV_8U, 255.0);
 
-		cout << i/15 << " : " << sum(hsv8)[2] << endl;
+		float movement = sum(hsv8)[2];
+		float total = hsv8.total()*255.0;
+		float density = movement/total;
+
+		stringstream ss;
+        ss << capture.get(CAP_PROP_POS_FRAMES);
+        string frameNumberString = ss.str();
+
+		cout << frameNumberString << " : " << density << endl;
 
 		cvtColor(hsv8, bgr, COLOR_HSV2BGR);
 

@@ -8,7 +8,7 @@ all: $(TARGET)
 
 
 $(TARGET): $(TARGET).cpp
-	$(CC) $(TARGET).cpp -o $(TARGET) $(CFLAGS) $(THREAD) `$(LIBS)`
+	$(CC) $(TARGET).cpp warp_crop.cpp -o $(TARGET) $(CFLAGS) $(THREAD) `$(LIBS)`
 
 
 clean:

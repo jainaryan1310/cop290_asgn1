@@ -1,5 +1,5 @@
-#ifndef ASGN1_SUB1_H
-#define ASGN1_SUB1_H
+#ifndef WARP_CROP_H
+#define WARP_CROP_H
 
 #include <iostream>
 #include <stdio.h>
