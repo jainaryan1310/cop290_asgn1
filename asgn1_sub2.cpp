@@ -73,6 +73,8 @@ int main(int argc, char* argv[]){
     	framenum++;
 
         capture >> frame;
+        capture >> frame;
+        capture >> frame;
         if (frame.empty())
             break;
 
@@ -122,12 +124,12 @@ int main(int argc, char* argv[]){
 		float movement = sum(hsv8)[2];
 		float max_movement = hsv8.total()*255.0;
 		float moving_density = movement/max_movement;
-		float time = framenum/15.0;
+		//float time = framenum/5.0;
 
         
         cout << framenum << ", " << queue_density << ", " << moving_density << endl;
         outfile1 << framenum << " " << queue_density << " " << moving_density << endl;
-        outfile2 << time << "," << queue_density << "," << moving_density << endl;
+        //outfile2 << time << "," << queue_density << "," << moving_density << endl;
 
 
         //show the backfround subtraction output
