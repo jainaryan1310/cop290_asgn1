@@ -126,9 +126,11 @@ int main(int argc, char* argv[]){
 		float moving_density = movement/max_movement;
 		//float time = framenum/5.0;
 
+        int frameNum = framenum * 3;
+
         
-        cout << framenum << ", " << queue_density << ", " << moving_density << endl;
-        outfile1 << framenum << " " << queue_density << " " << moving_density << endl;
+        cout << frameNum << ", " << queue_density << ", " << moving_density << endl;
+        outfile1 << frameNum << " " << queue_density << " " << moving_density << endl;
         //outfile2 << time << "," << queue_density << "," << moving_density << endl;
 
 
