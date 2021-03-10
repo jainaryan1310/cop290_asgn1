@@ -32,10 +32,6 @@ int main(int argc, char* argv[]){
 
 	Mat emptyImg = imread(argv[2]);
 
-	//Mat emptyGrayFrame;
-
-	//cvtColor(emptyImg, emptyGrayFrame, COLOR_BGR2GRAY);
-
 	getCropCoordinates(emptyImg);
 
 	VideoCapture capture(argv[1]);
@@ -124,14 +120,12 @@ int main(int argc, char* argv[]){
 		float movement = sum(hsv8)[2];
 		float max_movement = hsv8.total()*255.0;
 		float moving_density = movement/max_movement;
-		//float time = framenum/5.0;
 
         int frameNum = framenum * 3;
 
         
         cout << frameNum << ", " << queue_density << ", " << moving_density << endl;
         outfile1 << frameNum << " " << queue_density << " " << moving_density << endl;
-        //outfile2 << time << "," << queue_density << "," << moving_density << endl;
 
 
         //show the backfround subtraction output
@@ -139,6 +133,7 @@ int main(int argc, char* argv[]){
 
         cvtColor(hsv8, bgr, COLOR_HSV2BGR);
 
+        //show the optical flow output
 		imshow("frame", bgr);
 
         //get the input from the keyboard for quitting
