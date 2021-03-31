@@ -2,7 +2,7 @@
 COP 290 | Assignment 1 | Using OpenCV for traffic density detection | Aryan Jain (2019CS10334) &amp; Avantika Agarwal (2019CS10338)
 
 # asgn1_part1
-compile using : make asgn1_sub1
+compile using : make asgn1_sub1 <br />
 Run executable using : ./asgn1_sub1 image.jpg <br />
 
 # asgn1_part2
