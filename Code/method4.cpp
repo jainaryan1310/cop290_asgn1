@@ -25,11 +25,8 @@ struct thread_data {
 	int id;
 };
 
-static pthread_mutex_t mutex;
 
 void* call_queue_density(void *thread_arg) {
-
-	pthread_mutex_lock(&mutex);
 
 	struct thread_data *my_data;
     my_data = (struct thread_data *) thread_arg;
@@ -41,8 +38,6 @@ void* call_queue_density(void *thread_arg) {
             pthread_exit(NULL);
     }
 
-    bool previous = false;
-
     Mat frame, fgMask;
 
     Ptr<BackgroundSubtractor> pBackSub;
@@ -52,59 +47,33 @@ void* call_queue_density(void *thread_arg) {
     Mat croppedImg = crop(warpedImg);
     pBackSub->apply(croppedImg, fgMask, 0);
 
-    int framenum = 0;
+    int framenum = (5737/my_data->num_threads)*(my_data->id);
 
-    for (int j = 0; j < my_data->id + 1; j++) {
+    capture.set(CAP_PROP_POS_FRAMES, framenum);
+    for (int j = 0; j < (5737/my_data->num_threads); j++) {
     	capture >> frame;
-    	framenum++;
-    }
-
-    warpedImg = warp(frame);
-    croppedImg = crop(warpedImg);
-
-    //update the background model
-    pBackSub->apply(croppedImg, fgMask, 0);
-    Mat thresh;
-    threshold(fgMask, thresh, 200, 255, 3);
-
-    float white = countNonZero(thresh);
-    float total = thresh.total();
-    float density = white/total;
-    cout << framenum << " " << density << endl;
-    output[(my_data->num_threads)-1][framenum] = density;
-
-    while (true) {
-    	
-    	for (int i = 0; i < my_data->num_threads; i++) {
-    		capture >> frame;
-    		framenum++;
-    		if (frame.empty()) {
-    			previous = true;
-    			break;
-    		}
-    	}
-
-    	if (previous) {
-    		break;
-    	}
-
-    	Mat warpedImg = warp(frame);
-        Mat croppedImg = crop(warpedImg);
+        if (frame.empty()) {
+            break;
+        }
+        warpedImg = warp(frame);
+        croppedImg = crop(warpedImg);
 
         //update the background model
         pBackSub->apply(croppedImg, fgMask, 0);
-        
         Mat thresh;
         threshold(fgMask, thresh, 200, 255, 3);
 
         float white = countNonZero(thresh);
         float total = thresh.total();
         float density = white/total;
-        cout << framenum << " " << density << endl;
+        cout << my_data->num_threads << " " << framenum << " " << density << endl;
+        if (framenum >= 5737) {
+            break;
+        }
         output[(my_data->num_threads)-1][framenum] = density;
+        framenum++;
     }
 
-    pthread_mutex_unlock(&mutex);
     pthread_exit(NULL);
 
 }
@@ -181,7 +150,7 @@ int main(int argc, char* argv[]) {
     	   	int t = pthread_join(threads[i], &status);
     	   	if (t != 0) {
     	       	cout << "Error in thread join: " << t << endl;
-    	       }
+    	    }
     	}
 
         for (int i = 0; i < 5737; i++) {
