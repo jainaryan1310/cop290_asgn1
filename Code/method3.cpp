@@ -9,15 +9,14 @@
 #include <opencv2/bgsegm.hpp>
 #include <fstream>
 
-
-using namespace cv;
 using namespace std;
+using namespace cv;
 
 vector<float> results[36];
 
 struct method3_args {
-    Mat EmptyImg;
-    VideoCapture capture;
+    Mat roiEmptyFrame;
+    Mat roiFrame;
     int thread_no;
     int total_threads;
 };
@@ -30,62 +29,22 @@ void *method3(void *thread_arg){
     Ptr<BackgroundSubtractor> pBackSub;
     pBackSub = createBackgroundSubtractorMOG2();
 
-    if (!method3_arg->capture.isOpened()){
-        //error in opening the video input
-        cerr << "Unable to open the video frame" << endl;
-    }
+    Mat fgMask;
 
-    Mat frame, fgMask, grayFrame;
+    pBackSub->apply(method3_arg->roiEmptyFrame, fgMask, 0);
 
-    Mat warpedImg = warp(method3_arg->EmptyImg);
-    Mat croppedImg = crop(warpedImg);
+    pBackSub->apply(method3_arg->roiFrame, fgMask, 0);
 
-    int original_width;
-    original_width = croppedImg.size().width;
+    Mat thresh;
+    threshold(fgMask, thresh, 50, 255, 3);
 
-    Mat finalCroppedImg;
+    float white = countNonZero(thresh);
+    float total = thresh.total();
+    float density = white/total;
 
-    Rect roi(original_width*((method3_arg->thread_no)-1)/(method3_arg->total_threads), 0, original_width/method3_arg->total_threads, croppedImg.size().height);
-    finalCroppedImg = croppedImg(roi);
-
-    pBackSub->apply(croppedImg, fgMask, 0);
-
-    int result_no = method3_arg->total_threads*(method3_arg->total_threads-1)/2 + method3_arg->thread_no - 1;
-
-    while (true) {
-        method3_arg->capture >> frame;
-        if (frame.empty())
-            break;
-
-        Mat warpedImg = warp(frame);
-        Mat croppedImg = crop(warpedImg);
-
-        finalCroppedImg = croppedImg(roi);
-
-        //update the background model
-        pBackSub->apply(finalCroppedImg, fgMask, 0);
-        
-        Mat thresh;
-        threshold( fgMask, thresh, 200, 255, 3);
-
-        float white = countNonZero(thresh);
-        float total = thresh.total();
-        float density = white/total;
-
-        stringstream ss;
-        ss << method3_arg->capture.get(CAP_PROP_POS_FRAMES);
-        string frameNumberString = ss.str();
-        cout << frameNumberString << " " << density << endl;
-        results[result_no].push_back(density);
-
-        //show the backfround subtraction output
-        imshow("FG Mask", thresh);
-
-        //get the input from the keyboard for quitting
-        int keyboard = waitKey(30);
-        if (keyboard == 'q' || keyboard == 27)
-            break;
-    }
+    cout << density << endl;
+    int result_no = method3_arg->total_threads*(method3_arg->total_threads-1)/2+method3_arg->thread_no-1;
+    results[result_no].push_back(density);
 }
 
 int main(int argc, char* argv[]){
@@ -104,51 +63,74 @@ int main(int argc, char* argv[]){
              return -1;
     }
 
-    Mat emptyImg = imread("empty.jpg");
+    Mat emptyImg = imread(argv[2]);
 
-    getCropCoordinates(emptyImg);
+    Mat grayEmptyImg;
+    cvtColor(emptyImg, grayEmptyImg, COLOR_BGR2GRAY);
 
-    Mat warpedImg = warp(emptyImg);
-    Mat croppedImg = crop(warpedImg);
-    int original_width = croppedImg.size().width;
+    getCropCoordinates(grayEmptyImg);
+
+    Mat warpedEmptyImg = warp(grayEmptyImg);
+    Mat croppedEmptyImg = crop(warpedEmptyImg);
+    int original_width = croppedEmptyImg.size().width;
+
+    Mat frame, grayFrame;
 
     ofstream outfile1;
     outfile1.open("method3_runtimes.csv");
 
-    for (int x = 1; x < 9; x++) {
+    for(int x = 1; x < 9; x++){
 
         time_t start, end;
-
         time(&start);
 
         pthread_t threads[x];
         struct method3_args ta[x];
 
-        for (int i = 0 ; i < x ; ++i) {
+        VideoCapture capture(argv[1]);
 
-            VideoCapture capture(argv[1]);
+        while(true){
 
-            ta[i].EmptyImg = emptyImg;
-            ta[i].capture = capture;
-            ta[i].thread_no = i+1;
-            ta[i].total_threads = x;
-            int t = pthread_create(&threads[i], NULL, method3, (void *)&ta[i]);
-            if (t != 0) {
-                cout << "Error in thread creation: " << t << endl;
+            capture >> frame;
+
+            if (frame.empty())
+            {
+                cout << "111111111111111111111111" << endl;
+                break;
             }
-        }
 
-        for(int i = 0 ; i < x; ++i) {
-            void* status;
-            int t = pthread_join(threads[i], &status);
-            if (t != 0) {
-                cout << "Error in thread join: " << t << endl;
-              }
+            cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
+
+            Mat warpedImg = warp(grayFrame);
+            Mat croppedImg = crop(warpedImg);
+
+            for(int i = 0; i<x; i++){
+
+                Rect roi(original_width*i/x, 0, original_width/x, croppedImg.size().height);
+                Mat roiEmptyFrame = croppedEmptyImg(roi);
+                Mat roiFrame = croppedImg(roi);
+
+                ta[i].roiEmptyFrame = roiEmptyFrame;
+                ta[i].roiFrame = roiFrame;
+                ta[i].thread_no = i+1;
+                ta[i].total_threads = x;
+                int t = pthread_create(&threads[i], NULL, method3, (void *)&ta[i]);
+                if (t != 0) {
+                    cerr << "Error in thread creation: " << t << endl;
+                }
+            }
+            for(int i = 0 ; i < x; ++i) {
+                void* status;
+                int t = pthread_join(threads[i], &status);
+                if (t != 0) {
+                    cout << "Error in thread join: " << t << endl;
+                  }
+            }
         }
 
 
         ofstream outfile;
-        outfile.open("m3thread"+to_string(x)+".csv");
+        outfile.open("method3file"+to_string(x)+".csv");
 
         float density;
         for(int f = 0; f<results[x*(x-1)/2].size(); f++){
@@ -164,5 +146,4 @@ int main(int argc, char* argv[]){
         outfile1 << to_string(x) << ", " << fixed << time_taken << setprecision(5) << endl;
 
     }
-
 }
